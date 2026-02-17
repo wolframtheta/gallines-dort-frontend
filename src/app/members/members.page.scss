@@ -1,0 +1,13 @@
+// Members-specific styles - override global button min-width for compact Add button
+:host .btn-add-member {
+  min-width: 50px !important;
+}
+
+// Logout icon rotation (com Gemini)
+.btn-logout ion-icon {
+  transform: rotate(180deg);
+}
+
+.btn-logout ion-icon.icon-spacing {
+  margin-inline-end: 12px;
+}

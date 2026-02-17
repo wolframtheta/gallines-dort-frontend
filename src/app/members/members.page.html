@@ -1,0 +1,39 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" [style.--background]="COLORS.bg">
+  <div class="flex flex-col gap-4">
+    <h2 class="font-heading text-lg" [style.color]="COLORS.textMain">Membres</h2>
+    @if (gallines.loading()) {
+      <p class="text-sm" [style.color]="COLORS.textLight">Carregant...</p>
+    } @else if (users.length === 0) {
+      <p class="text-sm italic" [style.color]="COLORS.textLight">Cap membre al grup</p>
+    } @else {
+      <div class="flex flex-col gap-3">
+        @for (u of users; track u.id) {
+          <div class="bg-white p-4 rounded-3xl shadow-sm border border-[#EBE8D8] flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+              [style.background-color]="COLORS.primary + '15'"
+              [style.color]="COLORS.primary">
+              <ion-icon name="person-outline" style="font-size: 24px"></ion-icon>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <p class="font-body font-medium" [style.color]="COLORS.textMain">
+                {{ u.displayName || u.email }}
+              </p>
+              @if (u.displayName) {
+                <p class="text-xs" [style.color]="COLORS.textLight">{{ u.email }}</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    <div class="pt-6">
+      <ion-button class="btn-logout" fill="outline" expand="block" (click)="logout()"
+        [style.--color]="COLORS.accent" [style.--border-color]="COLORS.accent">
+        <ion-icon name="log-out-outline" slot="start" class="icon-spacing"></ion-icon>
+        Tancar sessió
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

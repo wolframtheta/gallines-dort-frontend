@@ -1,0 +1,61 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" [style.--background]="COLORS.bg">
+  <div class="flex flex-col gap-6 pb-24">
+    <!-- Formulari -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-5">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Nova Despesa
+      </h3>
+      <form (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight">Import</label>
+          <div class="relative">
+            <input type="number" step="0.01" placeholder="0.00" [(ngModel)]="newTransaction.amount" name="amount"
+              class="w-full pl-4 pr-10 py-3.5 bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-xl font-numeric"
+              [style.color]="COLORS.textMain" />
+            <span class="absolute right-4 top-4 font-numeric-medium opacity-50">€</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 w-full">
+          <div class="flex items-center justify-between w-full ml-1">
+            <label class="text-xs font-body" [style.color]="COLORS.textLight">Qui?</label>
+            <button type="button" (click)="openSplitExpenseModal()"
+              class="flex items-center gap-1 px-2 py-1 rounded-lg transition-all"
+              [style.background-color]="'transparent'" [style.color]="COLORS.textLight">
+              <ion-icon name="people-outline" style="font-size: 14px"></ion-icon>
+              <span class="text-xs font-body">Dividir</span>
+            </button>
+          </div>
+
+          <ion-item lines="none" class="ion-no-padding w-full [--inner-padding-end:0] [--padding-start:0] [--padding-end:0] [--min-height:auto]">
+            <ion-select [(ngModel)]="newTransaction.userId" name="userId" placeholder="Selecciona qui ha pagat"
+              justify="space-between"
+              interface="popover"
+              class="w-full px-4 py-3.5 bg-[#F7F4E8] border border-transparent rounded-2xl text-base font-body"
+            [style.color]="COLORS.textMain">
+            @for (u of gallines.users$(); track u.id) {
+              <ion-select-option [value]="u.id">{{ u.displayName || u.email }}</ion-select-option>
+            }
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <div>
+          <input type="text" placeholder="Concepte (Opcional)" [(ngModel)]="newTransaction.description"
+            name="description"
+            class="w-full px-4 py-2 text-sm bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none font-body"
+            [style.color]="COLORS.textMain" />
+        </div>
+
+        <button type="submit"
+          class="w-full text-white py-4 rounded-2xl font-numeric flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity"
+          [style.background-color]="COLORS.primary" [style.box-shadow]="'0 10px 20px -5px ' + COLORS.primary + '60'">
+          <ion-icon name="add-outline" style="font-size: 20px"></ion-icon>
+          Afegir Despesa
+        </button>
+      </form>
+    </div>
+  </div>
+</ion-content>

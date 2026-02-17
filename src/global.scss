@@ -9,6 +9,39 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+/* Fonts locals - Fraunces (logo, títols) + Manrope (cos, números) */
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/assets/fonts/Fraunces/static/Fraunces_72pt_Soft-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/assets/fonts/Fraunces/static/Fraunces_72pt_Soft-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/assets/fonts/Fraunces/static/Fraunces_72pt_Soft-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Manrope';
+  src: url('/assets/fonts/Manrope/Manrope-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -26,12 +59,92 @@
 @import "@ionic/angular/css/flex-utils.css";
 
 /**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
+ * Ionic Dark Mode - Desactivat, només tema light
  * https://ionicframework.com/docs/theming/dark-mode
  */
-
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* @import '@ionic/angular/css/palettes/dark.system.css'; */
+
+/* Botons i inputs amb border radius consistent */
+ion-button,
+button {
+  min-width: 160px;
+  padding: 12px 20px;
+  min-height: 48px;
+  border-radius: var(--radius-button);
+}
+
+form button,
+ion-button.button-block {
+  width: 100%;
+  min-width: unset;
+  padding: 14px 24px;
+  min-height: 52px;
+}
+
+input,
+select,
+textarea {
+  border-radius: var(--radius-input);
+}
+
+/* Ion-fab i altres elements interactius */
+ion-fab-button {
+  border-radius: var(--radius-input);
+}
+
+/* === Tipografia + Border radius === */
+:root {
+  --font-logo: 'Fraunces', serif;
+  --font-heading: 'Fraunces', serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-numeric: 'Manrope', sans-serif;
+
+  /* Border radius consistent (rounded-2xl = 1rem) */
+  --radius-input: 1rem;
+  --radius-button: 1rem;
+  --radius-card: 1.5rem;
+  --radius-sm: 0.75rem;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* Logotip: Fraunces Soft Bold */
+.font-logo,
+.app-logo {
+  font-family: var(--font-logo);
+  font-weight: 700;
+}
+
+/* Headings sense margins (control via gap al pare) */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}/* Títols secció: Fraunces Regular / SemiBold */
+h2, h3, .font-heading,
+.section-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+/* Cos de text: Manrope Regular (heretat per body) */
+.font-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* Números / Preus: Manrope Bold / Medium */
+.font-numeric,
+.font-price,
+.amount {
+  font-family: var(--font-numeric);
+  font-weight: 700;
+}
+
+.font-numeric-medium {
+  font-family: var(--font-numeric);
+  font-weight: 500;
+}

@@ -1,0 +1,14 @@
+ion-segment {
+  --background: #f0efe9;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+ion-segment-button {
+  --indicator-color: white;
+  --indicator-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --border-radius: 8px;
+  --color: #a8a29e;
+  --color-checked: #3d3d3d;
+  min-height: 36px;
+}

@@ -1,0 +1,18 @@
+<ion-header class="ion-no-border h-15 flex items-center justify-center">
+  <ion-toolbar
+    class="bg-white/80 backdrop-blur-md border-b border-stone-200/50 px-4 items-center justify-center flex h-full">
+    <div class="flex items-center justify-between min-h-[44px] w-full gap-4">
+      <div class="flex items-center gap-3 cursor-pointer" routerLink="/tabs/members">
+        <img src="assets/icon/logo.png" alt="Gallines d'Ort" class="w-11 h-11 object-contain flex-shrink-0" />
+        <h1 class="font-logo text-lg tracking-tight leading-none header-title" [style.color]="COLORS.textMain">
+          Gallines d'Ort
+        </h1>
+      </div>
+      <div class="flex items-center text-sm font-numeric px-3 py-1.5 rounded-full"
+        [style.background-color]="(gallines.globalBalance() >= 0 ? COLORS.primary : COLORS.accent) + '20'"
+        [style.color]="gallines.globalBalance() >= 0 ? COLORS.primary : COLORS.accent">
+        {{ gallines.globalBalance() > 0 ? '+' : '' }}{{ gallines.globalBalance() | number:'1.0-10':'ca' }}€
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>

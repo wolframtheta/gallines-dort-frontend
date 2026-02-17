@@ -1,0 +1,77 @@
+<ion-content [fullscreen]="true" [style.--background]="COLORS.bg">
+  <div class="login-container">
+    <div class="login-wrap">
+      <!-- Logo i Títol -->
+      <div class="login-header">
+        <div class="login-logo">
+          <img src="assets/icon/logo.png" alt="Gallines d'Ort" class="block w-28 h-28 object-contain" />
+        </div>
+        <div class="login-title">
+          <h1 class="font-logo">Gallines d'Ort</h1>
+          <p class="font-body">Gestió comunitària d'ous i despeses</p>
+        </div>
+      </div>
+
+      <!-- Formulari -->
+      <form (ngSubmit)="submit()" class="login-form">
+        @if (!isLogin) {
+          <div class="login-field">
+            <label class="login-label font-body" for="displayName">Nom</label>
+            <input
+              id="displayName"
+              type="text"
+              [(ngModel)]="displayName"
+              name="displayName"
+              placeholder="El teu nom..."
+              class="login-input"
+            />
+          </div>
+        }
+
+        <div class="login-field">
+          <label class="login-label font-body" for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="email@exemple.cat"
+            required
+            class="login-input"
+          />
+        </div>
+
+        <div class="login-field">
+          <label class="login-label font-body" for="password">Contrasenya</label>
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="••••••••"
+            required
+            minlength="8"
+            class="login-input"
+          />
+        </div>
+
+        @if (error) {
+          <p class="login-error font-body">{{ error }}</p>
+        }
+
+        <button type="submit" [disabled]="loading" class="login-btn font-body">
+          <span>{{ loading ? '...' : isLogin ? 'Entrar' : 'Registrar' }}</span>
+          @if (!loading) {
+            <ion-icon name="arrow-forward-outline" style="font-size: 20px"></ion-icon>
+          }
+        </button>
+
+        <button type="button" (click)="toggleMode()" class="login-toggle font-body">
+          {{ isLogin ? 'No tens compte? Registra\'t' : 'Ja tens compte? Inicia sessió' }}
+        </button>
+      </form>
+
+      <p class="login-footer font-body">Versió 1.0 • Gallines d'Ort App</p>
+    </div>
+  </div>
+</ion-content>

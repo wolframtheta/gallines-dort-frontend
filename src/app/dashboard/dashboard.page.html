@@ -1,0 +1,67 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" [style.--background]="COLORS.bg">
+  <div class="flex flex-col gap-4">
+    <!-- Card Principal -->
+    <div class="rounded-3xl p-6 text-white shadow-xl flex flex-col gap-6"
+      [style.background]="'linear-gradient(135deg, ' + COLORS.primary + ' 0%, #3e5933 100%)'">
+      <div class="flex flex-col gap-1">
+        <p class="text-sm font-heading opacity-90" [style.color]="COLORS.highlight">Balanç Global</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-4xl font-numeric">{{ gallines.globalBalance() | number:'1.0-10':'ca' }}€</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur-sm border border-white/10 flex flex-col gap-1">
+          <div class="flex items-center gap-2" [style.color]="COLORS.highlight">
+            <ion-icon name="arrow-up-outline" style="font-size: 16px"></ion-icon>
+            <span class="text-xs font-heading uppercase tracking-wider">Ingressos</span>
+          </div>
+          <p class="font-numeric text-lg">{{ gallines.totalIncome() | number:'1.0-10':'ca' }}€</p>
+        </div>
+        <div class="bg-white/10 rounded-2xl p-3 backdrop-blur-sm border border-white/10 flex flex-col gap-1">
+          <div class="flex items-center gap-2 text-red-200">
+            <ion-icon name="arrow-down-outline" style="font-size: 16px"></ion-icon>
+            <span class="text-xs font-heading uppercase tracking-wider">Despeses</span>
+          </div>
+          <p class="font-numeric text-lg">{{ gallines.totalExpenses() | number:'1.0-10':'ca' }}€</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totes les transaccions (ingressos i despeses) -->
+    <div class="flex flex-col gap-3 pb-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider ml-1" [style.color]="COLORS.textLight">
+        Transaccions
+      </h3>
+      @if (gallines.transactions$().length === 0) {
+      <div class="text-center py-10 italic rounded-3xl border-2 border-dashed" style="border-color: #EBE8D8"
+        [style.color]="COLORS.textLight">
+        <span class="font-body">Cap moviment</span>
+      </div>
+      } @else {
+      @for (t of sortedTransactions; track t.id) {
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-[#EBE8D8] flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+            [style.background-color]="t.type === 'expense' ? COLORS.accent + '15' : COLORS.primary + '15'"
+            [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+            <ion-icon [name]="t.type === 'expense' ? 'cash-outline' : 'egg-outline'"
+              style="font-size: 20px"></ion-icon>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <p class="font-body text-sm" [style.color]="COLORS.textMain">{{ t.description }}</p>
+            <p class="text-xs font-body" [style.color]="COLORS.textLight">
+              {{ getMemberName(t) }} • {{ t.date }}
+            </p>
+          </div>
+        </div>
+        <span class="font-numeric text-lg" [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+          {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }} €
+        </span>
+      </div>
+      }
+      }
+    </div>
+  </div>
+</ion-content>

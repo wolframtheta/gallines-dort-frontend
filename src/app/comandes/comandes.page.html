@@ -1,0 +1,154 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" [style.--background]="COLORS.bg">
+  <div class="flex flex-col gap-6 pb-24">
+    <!-- Formulari nova comanda -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-5">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Nova Comanda
+      </h3>
+      <form (ngSubmit)="addOrder()" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight">Persona clienta</label>
+            <input type="text" placeholder="Nom..." [(ngModel)]="newOrder.clientName" name="clientName"
+              class="w-full h-[50px] px-4 bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-sm font-body"
+              [style.color]="COLORS.textMain" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight">Mitges dotzenes</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" (click)="decrementQty()"
+                class="h-[50px] flex items-center justify-center rounded-2xl text-white touch-manipulation active:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                [style.background-color]="COLORS.primary" [disabled]="newOrder.mitgesDotzenes() <= minQty">
+                <span class="text-xl font-numeric leading-none">−</span>
+              </button>
+              <input type="number" [ngModel]="newOrder.mitgesDotzenes()" (ngModelChange)="setQty($event)"
+                name="mitgesDotzenes" [min]="minQty"
+                class="h-[50px] px-2 text-center bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none font-numeric"
+                [style.color]="COLORS.textMain" />
+              <button type="button" (click)="incrementQty()"
+                class="h-[50px] flex items-center justify-center rounded-2xl text-white touch-manipulation active:opacity-90"
+                [style.background-color]="COLORS.primary">
+                <span class="text-xl font-numeric leading-none">+</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <button type="submit"
+          class="w-full text-white py-4 rounded-2xl font-numeric flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity"
+          [style.background-color]="COLORS.primary" [style.box-shadow]="'0 10px 20px -5px ' + COLORS.primary + '60'">
+          <ion-icon name="add-outline" style="font-size: 20px"></ion-icon>
+          Afegir Comanda
+        </button>
+      </form>
+    </div>
+
+    <!-- Llista comandes (ordre d'apuntat: més antigues primer) -->
+    <div class="flex flex-col gap-3 pb-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider ml-1" [style.color]="COLORS.textLight">
+        Comandes
+      </h3>
+      @if (gallines.orders$().length === 0) {
+      <div class="text-center py-10 italic rounded-3xl border-2 border-dashed" style="border-color: #EBE8D8"
+        [style.color]="COLORS.textLight">
+        <span class="font-body">Cap comanda</span>
+      </div>
+      } @else {
+      <!-- Active Orders -->
+      @for (o of activeOrders(); track o.id) {
+      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white">
+        <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
+          <div class="w-full p-4 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-body font-medium text-base" [style.color]="COLORS.textMain">
+                {{ getPersonName(o) }}
+              </p>
+              <p class="text-sm font-numeric" [style.color]="COLORS.textLight">
+                {{ o.mitgesDotzenes }} mitges dotzenes
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" (click)="togglePaid(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                [style.background-color]="o.paid ? COLORS.primary + '20' : '#F0EFE9'"
+                [style.color]="o.paid ? COLORS.primary : COLORS.textLight" title="{{ o.paid ? 'Pagat' : 'No pagat' }}">
+                <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+              </button>
+              <button type="button" (click)="toggleDelivered(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                [style.background-color]="o.delivered ? COLORS.accent + '20' : '#F0EFE9'"
+                [style.color]="o.delivered ? COLORS.accent : COLORS.textLight"
+                title="{{ o.delivered ? 'Entregat' : 'No entregat' }}">
+                <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="deleteOrder(o)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+      }
+
+      <!-- Completed Orders Accordion -->
+      @if (completedOrders().length > 0) {
+      <div class="mt-4">
+        <button (click)="toggleCompleted()"
+          class="w-full flex items-center justify-between p-3 rounded-2xl bg-[#EBE8D8]/50 mb-3">
+          <span class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+            Completades ({{ completedOrders().length }})
+          </span>
+          <ion-icon [name]="showCompleted() ? 'chevron-down-outline' : 'chevron-forward-outline'"
+            [style.color]="COLORS.textLight"></ion-icon>
+        </button>
+
+        @if (showCompleted()) {
+        <div class="flex flex-col gap-3">
+          @for (o of completedOrders(); track o.id) {
+          <ion-item-sliding class="mb-3 rounded-3xl border border-[#EBE8D8] bg-white/60">
+            <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
+              <div class="w-full p-4 flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="font-body font-medium text-base opacity-75" [style.color]="COLORS.textMain">
+                    {{ getPersonName(o) }}
+                  </p>
+                  <p class="text-sm font-numeric opacity-75" [style.color]="COLORS.textLight">
+                    {{ o.mitgesDotzenes }} mitges dotzenes
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 opacity-75">
+                  <button type="button" (click)="togglePaid(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                    [style.background-color]="o.paid ? COLORS.primary + '20' : '#F0EFE9'"
+                    [style.color]="o.paid ? COLORS.primary : COLORS.textLight"
+                    title="{{ o.paid ? 'Pagat' : 'No pagat' }}">
+                    <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+                  </button>
+                  <button type="button" (click)="toggleDelivered(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                    [style.background-color]="o.delivered ? COLORS.accent + '20' : '#F0EFE9'"
+                    [style.color]="o.delivered ? COLORS.accent : COLORS.textLight"
+                    title="{{ o.delivered ? 'Entregat' : 'No entregat' }}">
+                    <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            </ion-item>
+
+            <ion-item-options side="end">
+              <ion-item-option color="danger" (click)="deleteOrder(o)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+          }
+        </div>
+        }
+      </div>
+      }
+      }
+    </div>
+  </div>
+</ion-content>

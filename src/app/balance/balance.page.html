@@ -1,0 +1,119 @@
+<app-header></app-header>
+
+<ion-content [fullscreen]="true" class="ion-padding" [style.--background]="COLORS.bg">
+  <div class="flex flex-col gap-6 pb-24">
+    <!-- Pla de Pagaments -->
+    <div class="bg-white rounded-3xl shadow-sm p-6 flex flex-col gap-5 border border-[#EBE8D8]">
+      <h3 class="font-heading flex items-center gap-2" [style.color]="COLORS.textMain">
+        <ion-icon name="wallet-outline" [style.color]="COLORS.highlight" style="font-size: 22px"></ion-icon>
+        Pla de Pagaments
+      </h3>
+
+      @if (gallines.transfers().length === 0) {
+      <div
+        class="text-center py-6 font-body rounded-2xl border-2 border-dashed"
+        style="border-color: #EBE8D8"
+        [style.color]="COLORS.textLight">
+        Tot equilibrat! 🎉
+      </div>
+      } @else {
+      <div class="flex flex-col gap-3">
+        @for (t of gallines.transfers(); track $index) {
+        <div class="flex flex-col gap-2 bg-[#F7F4E8] p-4 rounded-2xl border border-[#EBE8D8]">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-body" [style.color]="COLORS.accent">{{ t.from }}</span>
+              <ion-icon name="arrow-forward-outline" [style.color]="COLORS.textLight" style="font-size: 14px"></ion-icon>
+              <span class="font-body" [style.color]="COLORS.primary">{{ t.to }}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-2xl font-numeric" [style.color]="COLORS.highlight">{{ t.amount | number:'1.0-10':'ca' }}
+              €</span>
+            <p class="text-[10px] font-body" [style.color]="COLORS.textLight">per fer net</p>
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <!-- Estat del Grup -->
+    <div class="flex flex-col gap-3">
+      <h3 class="text-xs font-heading uppercase tracking-wider ml-1" [style.color]="COLORS.textLight">
+        Estat actual
+      </h3>
+      @for (row of gallines.settlement(); track row.person) {
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <span class="font-body text-lg" [style.color]="COLORS.textMain">{{ row.person }}</span>
+          <span class="px-3 py-1 rounded-full text-xs font-numeric"
+            [style.background-color]="row.diff > 0 ? COLORS.primary + '15' : COLORS.accent + '15'"
+            [style.color]="row.diff > 0 ? COLORS.primary : COLORS.accent">
+            {{ row.diff > 0 ? 'REP' : 'PAGA' }} {{ Math.abs(row.diff) | number:'1.0-10':'ca' }} €
+          </span>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-[#F7F4E8]">
+          <div class="flex flex-col gap-1">
+            <span class="font-body" [style.color]="COLORS.textLight">Ha pagat</span>
+            <span class="font-numeric text-base" [style.color]="COLORS.textMain">{{ row.paid | number:'1.0-10':'ca' }}
+              €</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <span class="font-body" [style.color]="COLORS.textLight">Té a la butxaca</span>
+            <span class="font-numeric text-base" [style.color]="COLORS.textMain">{{ row.held | number:'1.0-10':'ca' }}
+              €</span>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Llista de Moviments -->
+    <div class="flex flex-col gap-3 pb-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider ml-1" [style.color]="COLORS.textLight">
+        Darrers moviments
+      </h3>
+      @if (gallines.transactions$().length === 0) {
+      <div class="text-center py-10 italic rounded-3xl border-2 border-dashed" style="border-color: #EBE8D8"
+        [style.color]="COLORS.textLight">
+        <span class="font-body">Cap moviment</span>
+      </div>
+      } @else {
+      @for (t of sortedTransactions; track t.id) {
+      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white">
+        <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
+          <div class="w-full p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                [style.background-color]="t.type === 'expense' ? COLORS.accent + '15' : COLORS.primary + '15'"
+                [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+                <ion-icon [name]="t.type === 'expense' ? 'cash-outline' : 'egg-outline'"
+                  style="font-size: 20px"></ion-icon>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <p class="font-body text-sm" [style.color]="COLORS.textMain">{{ t.description }}</p>
+                <p class="text-xs font-body" [style.color]="COLORS.textLight">
+                  {{ getMemberName(t) }} • {{ t.date }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-numeric text-lg" [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+                {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }}
+              </span>
+            </div>
+          </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="deleteTransaction(t.id)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+      }
+      }
+    </div>
+  </div>
+</ion-content>
