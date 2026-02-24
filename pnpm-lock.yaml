@@ -50,6 +50,9 @@ importers:
       '@ionic/angular':
         specifier: ^8.0.0
         version: 8.7.17(779e92b12364ecfade5acc83c4c09d29)
+      dayjs:
+        specifier: ^1.11.19
+        version: 1.11.19
       ionicons:
         specifier: ^7.0.0
         version: 7.4.0
@@ -2908,6 +2911,9 @@ packages:
   date-format@4.0.14:
     resolution: {integrity: sha512-39BOQLs9ZjKh0/patS9nrT8wc3ioX3/eA/zgbKNopnF2wCqJEoxywwwElATYvRsXdnOxA/OQeQoFZ3rFjVajhg==}
     engines: {node: '>=4.0'}
+
+  dayjs@1.11.19:
+    resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -8758,6 +8764,8 @@ snapshots:
       is-data-view: 1.0.2
 
   date-format@4.0.14: {}
+
+  dayjs@1.11.19: {}
 
   debug@2.6.9:
     dependencies:
