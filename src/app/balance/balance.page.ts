@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import {
   IonContent,
   IonIcon,
@@ -6,6 +6,7 @@ import {
   IonItem,
   IonItemOptions,
   IonItemOption,
+  IonSpinner,
   ViewWillEnter,
 } from '@ionic/angular/standalone';
 import { HeaderComponent } from '../components/header/header.component';
@@ -29,11 +30,13 @@ import type { TransactionDto } from '../services/api.service';
     IonItem,
     IonItemOptions,
     IonItemOption,
+    IonSpinner,
   ],
 })
 export class BalancePage implements ViewWillEnter {
   readonly COLORS = COLORS;
   readonly Math = Math;
+  deletingTransactionId = signal<string | null>(null);
 
   constructor(public gallines: GallinesService) {
     addIcons({ eggOutline, walletOutline, arrowForwardOutline, cashOutline, trashOutline });
@@ -59,7 +62,13 @@ export class BalancePage implements ViewWillEnter {
     return 'General';
   }
 
-  deleteTransaction(id: string): void {
-    void this.gallines.deleteTransaction(id);
+  async deleteTransaction(id: string): Promise<void> {
+    if (this.deletingTransactionId() === id) return;
+    this.deletingTransactionId.set(id);
+    try {
+      await this.gallines.deleteTransaction(id);
+    } finally {
+      this.deletingTransactionId.set(null);
+    }
   }
 }

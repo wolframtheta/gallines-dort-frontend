@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonContent, IonIcon, ViewWillEnter } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSkeletonText, ViewWillEnter } from '@ionic/angular/standalone';
 import { HeaderComponent } from '../components/header/header.component';
 import { GallinesService } from '../services/gallines.service';
 import { COLORS } from '../models';
@@ -12,7 +12,7 @@ import type { TransactionDto } from '../services/api.service';
   selector: 'app-dashboard',
   templateUrl: 'dashboard.page.html',
   styleUrls: ['dashboard.page.scss'],
-  imports: [HeaderComponent, IonContent, IonIcon, DecimalPipe],
+  imports: [HeaderComponent, IonContent, IonIcon, IonSkeletonText, DecimalPipe],
 })
 export class DashboardPage implements ViewWillEnter {
   readonly COLORS = COLORS;

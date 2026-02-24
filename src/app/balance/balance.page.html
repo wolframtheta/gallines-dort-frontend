@@ -81,7 +81,12 @@
       </div>
       } @else {
       @for (t of sortedTransactions; track t.id) {
-      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white">
+      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white relative">
+        @if (deletingTransactionId() === t.id) {
+          <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-3xl z-10">
+            <ion-spinner name="crescent" [style.color]="COLORS.primary"></ion-spinner>
+          </div>
+        }
         <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
           <div class="w-full p-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
