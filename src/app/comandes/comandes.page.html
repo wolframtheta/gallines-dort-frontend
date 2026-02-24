@@ -35,11 +35,15 @@
             </div>
           </div>
         </div>
-        <button type="submit"
-          class="w-full text-white py-4 rounded-2xl font-numeric flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity"
+        <button type="submit" [disabled]="addingOrder()"
+          class="w-full text-white py-4 rounded-2xl font-numeric flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity disabled:opacity-70 disabled:cursor-not-allowed"
           [style.background-color]="COLORS.primary" [style.box-shadow]="'0 10px 20px -5px ' + COLORS.primary + '60'">
-          <ion-icon name="add-outline" style="font-size: 20px"></ion-icon>
-          Afegir Comanda
+          @if (addingOrder()) {
+            <ion-spinner name="crescent" style="width: 24px; height: 24px"></ion-spinner>
+          } @else {
+            <ion-icon name="add-outline" style="font-size: 20px"></ion-icon>
+          }
+          {{ addingOrder() ? 'Afegint...' : 'Afegir Comanda' }}
         </button>
       </form>
     </div>
@@ -49,7 +53,20 @@
       <h3 class="text-xs font-heading uppercase tracking-wider ml-1" [style.color]="COLORS.textLight">
         Comandes
       </h3>
-      @if (gallines.orders$().length === 0) {
+      @if (gallines.loading()) {
+      @for (_ of [1,2,3]; track $index) {
+      <div class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white p-4">
+        <div class="flex items-center justify-between gap-3 mb-3">
+          <ion-skeleton-text [animated]="true" style="width: 50%; height: 20px; border-radius: 8px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 35%; height: 16px; border-radius: 8px;"></ion-skeleton-text>
+        </div>
+        <div class="flex items-center gap-2">
+          <ion-skeleton-text [animated]="true" style="flex: 1; height: 40px; border-radius: 12px;"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="flex: 1; height: 40px; border-radius: 12px;"></ion-skeleton-text>
+        </div>
+      </div>
+      }
+      } @else if (gallines.orders$().length === 0) {
       <div class="text-center py-10 italic rounded-3xl border-2 border-dashed" style="border-color: #EBE8D8"
         [style.color]="COLORS.textLight">
         <span class="font-body">Cap comanda</span>
@@ -57,29 +74,57 @@
       } @else {
       <!-- Active Orders -->
       @for (o of activeOrders(); track o.id) {
-      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white">
+      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white relative">
+        @if (deletingOrderId() === o.id) {
+          <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-3xl z-10">
+            <ion-spinner name="crescent" [style.color]="COLORS.primary"></ion-spinner>
+          </div>
+        }
         <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
           <div class="w-full p-4 flex flex-col gap-3">
             <div class="flex items-center justify-between gap-3">
-              <p class="font-body font-medium text-base" [style.color]="COLORS.textMain">
-                {{ getPersonName(o) }}
-              </p>
+              <div class="flex items-center gap-2">
+                <p class="font-body font-medium text-base" [style.color]="COLORS.textMain">
+                  {{ getPersonName(o) }}
+                </p>
+                @if (o.subscriptionId) {
+                  <span class="flex items-center gap-1 text-xs font-body"
+                    [style.color]="COLORS.textLight" title="Subscripció · setmana fins {{ getWeekEndLabel(o) }}">
+                    <ion-icon name="repeat-outline" class="p-0.5 rounded"
+                      [style.background-color]="COLORS.primary + '20'" [style.color]="COLORS.primary"
+                      style="font-size: 16px"></ion-icon>
+                    <span class="font-numeric">{{ getWeekEndLabel(o) }}</span>
+                  </span>
+                }
+              </div>
               <p class="text-sm font-numeric" [style.color]="COLORS.textLight">
                 {{ o.mitgesDotzenes }} mitges dotzenes
               </p>
             </div>
 
             <div class="flex items-center gap-2">
-              <button type="button" (click)="togglePaid(o)" class="flex-1 p-2 rounded-xl transition-colors"
+              @if (!o.subscriptionId) {
+              <button type="button" (click)="togglePaid(o)" [disabled]="updatingOrderId() === o.id"
+                class="flex-1 p-2 rounded-xl transition-colors disabled:opacity-70"
                 [style.background-color]="o.paid ? COLORS.primary + '20' : '#F0EFE9'"
                 [style.color]="o.paid ? COLORS.primary : COLORS.textLight" title="{{ o.paid ? 'Pagat' : 'No pagat' }}">
-                <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+                @if (updatingOrderId() === o.id) {
+                  <ion-spinner name="crescent" style="font-size: 24px; width: 24px; height: 24px"></ion-spinner>
+                } @else {
+                  <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+                }
               </button>
-              <button type="button" (click)="toggleDelivered(o)" class="flex-1 p-2 rounded-xl transition-colors"
+              }
+              <button type="button" (click)="toggleDelivered(o)" [disabled]="updatingOrderId() === o.id"
+                class="flex-1 p-2 rounded-xl transition-colors disabled:opacity-70"
                 [style.background-color]="o.delivered ? COLORS.accent + '20' : '#F0EFE9'"
                 [style.color]="o.delivered ? COLORS.accent : COLORS.textLight"
                 title="{{ o.delivered ? 'Entregat' : 'No entregat' }}">
-                <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+                @if (updatingOrderId() === o.id) {
+                  <ion-spinner name="crescent" style="font-size: 24px; width: 24px; height: 24px"></ion-spinner>
+                } @else {
+                  <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+                }
               </button>
             </div>
           </div>
@@ -108,30 +153,58 @@
         @if (showCompleted()) {
         <div class="flex flex-col gap-3">
           @for (o of completedOrders(); track o.id) {
-          <ion-item-sliding class="mb-3 rounded-3xl border border-[#EBE8D8] bg-white/60">
+          <ion-item-sliding class="mb-3 rounded-3xl border border-[#EBE8D8] bg-white/60 relative">
+            @if (deletingOrderId() === o.id) {
+              <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-3xl z-10">
+                <ion-spinner name="crescent" [style.color]="COLORS.primary"></ion-spinner>
+              </div>
+            }
             <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
               <div class="w-full p-4 flex flex-col gap-3">
                 <div class="flex items-center justify-between gap-3">
-                  <p class="font-body font-medium text-base opacity-75" [style.color]="COLORS.textMain">
-                    {{ getPersonName(o) }}
-                  </p>
+                  <div class="flex items-center gap-2">
+                    <p class="font-body font-medium text-base opacity-75" [style.color]="COLORS.textMain">
+                      {{ getPersonName(o) }}
+                    </p>
+                    @if (o.subscriptionId) {
+                      <span class="flex items-center gap-1 text-xs font-body opacity-75"
+                        [style.color]="COLORS.textLight" title="Subscripció · setmana fins {{ getWeekEndLabel(o) }}">
+                        <ion-icon name="repeat-outline" class="p-0.5 rounded"
+                          [style.background-color]="COLORS.primary + '20'" [style.color]="COLORS.primary"
+                          style="font-size: 16px"></ion-icon>
+                        <span class="font-numeric">{{ getWeekEndLabel(o) }}</span>
+                      </span>
+                    }
+                  </div>
                   <p class="text-sm font-numeric opacity-75" [style.color]="COLORS.textLight">
                     {{ o.mitgesDotzenes }} mitges dotzenes
                   </p>
                 </div>
 
                 <div class="flex items-center gap-2 opacity-75">
-                  <button type="button" (click)="togglePaid(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                  @if (!o.subscriptionId) {
+                  <button type="button" (click)="togglePaid(o)" [disabled]="updatingOrderId() === o.id"
+                    class="flex-1 p-2 rounded-xl transition-colors disabled:opacity-70"
                     [style.background-color]="o.paid ? COLORS.primary + '20' : '#F0EFE9'"
                     [style.color]="o.paid ? COLORS.primary : COLORS.textLight"
                     title="{{ o.paid ? 'Pagat' : 'No pagat' }}">
-                    <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+                    @if (updatingOrderId() === o.id) {
+                      <ion-spinner name="crescent" style="font-size: 24px; width: 24px; height: 24px"></ion-spinner>
+                    } @else {
+                      <ion-icon [name]="o.paid ? 'cash' : 'cash-outline'" style="font-size: 24px"></ion-icon>
+                    }
                   </button>
-                  <button type="button" (click)="toggleDelivered(o)" class="flex-1 p-2 rounded-xl transition-colors"
+                  }
+                  <button type="button" (click)="toggleDelivered(o)" [disabled]="updatingOrderId() === o.id"
+                    class="flex-1 p-2 rounded-xl transition-colors disabled:opacity-70"
                     [style.background-color]="o.delivered ? COLORS.accent + '20' : '#F0EFE9'"
                     [style.color]="o.delivered ? COLORS.accent : COLORS.textLight"
                     title="{{ o.delivered ? 'Entregat' : 'No entregat' }}">
-                    <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+                    @if (updatingOrderId() === o.id) {
+                      <ion-spinner name="crescent" style="font-size: 24px; width: 24px; height: 24px"></ion-spinner>
+                    } @else {
+                      <ion-icon [name]="o.delivered ? 'cube' : 'cube-outline'" style="font-size: 24px"></ion-icon>
+                    }
                   </button>
                 </div>
               </div>

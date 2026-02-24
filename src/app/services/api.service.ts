@@ -81,6 +81,36 @@ export class ApiService {
   deleteOrder(orderId: string) {
     return this.http.delete(`${API}/orders/${orderId}`);
   }
+
+  // Subscriptions
+  getSubscriptions() {
+    return this.http.get<SubscriptionDto[]>(`${API}/subscriptions`);
+  }
+
+  createSubscription(dto: CreateSubscriptionDto) {
+    return this.http.post<SubscriptionDto>(`${API}/subscriptions`, dto);
+  }
+
+  updateSubscription(id: string, dto: UpdateSubscriptionDto) {
+    return this.http.patch<SubscriptionDto>(`${API}/subscriptions/${id}`, dto);
+  }
+
+  deleteSubscription(id: string) {
+    return this.http.delete(`${API}/subscriptions/${id}`);
+  }
+
+  generateWeeklyOrders() {
+    return this.http.post<OrderDto[]>(`${API}/subscriptions/generate-weekly-orders`, {});
+  }
+
+  chargeMonth(subscriptionId: string, year?: number, month?: number) {
+    let url = `${API}/subscriptions/${subscriptionId}/charge-month`;
+    const params: string[] = [];
+    if (year != null) params.push(`year=${year}`);
+    if (month != null) params.push(`month=${month}`);
+    if (params.length) url += '?' + params.join('&');
+    return this.http.post<{ orders: OrderDto[]; amount: number }>(url, {});
+  }
 }
 
 export interface User {
@@ -95,12 +125,37 @@ export interface OrderDto {
   mitgesDotzenes: number;
   paid: boolean;
   delivered: boolean;
+  subscriptionId?: string;
   createdAt: string;
+}
+
+export interface SubscriptionDto {
+  id: string;
+  clientName: string;
+  mitgesDotzenes: number;
+  amountPerMonth?: number | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSubscriptionDto {
+  clientName: string;
+  mitgesDotzenes: number;
+  amountPerMonth?: number;
+}
+
+export interface UpdateSubscriptionDto {
+  clientName?: string;
+  mitgesDotzenes?: number;
+  amountPerMonth?: number | null;
+  active?: boolean;
 }
 
 export interface CreateOrderDto {
   clientName: string;
   mitgesDotzenes: number;
+  createdAt?: string;
 }
 
 export interface UpdateOrderDto {
