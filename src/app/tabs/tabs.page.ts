@@ -15,6 +15,7 @@ import {
   scaleOutline,
   scale,
   listOutline,
+  repeatOutline,
 } from 'ionicons/icons';
 @Component({
   selector: 'app-tabs',
@@ -32,6 +33,7 @@ export class TabsPage {
       scaleOutline,
       scale,
       listOutline,
+      repeatOutline,
     });
   }
 }

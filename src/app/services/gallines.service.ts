@@ -11,6 +11,9 @@ import {
   OrderDto,
   CreateOrderDto,
   UpdateOrderDto,
+  SubscriptionDto,
+  CreateSubscriptionDto,
+  UpdateSubscriptionDto,
 } from './api.service';
 
 @Injectable({ providedIn: 'root' })
@@ -21,12 +24,14 @@ export class GallinesService {
   private readonly _transactions = signal<TransactionDto[]>([]);
   private readonly _balance = signal<BalanceResponse | null>(null);
   private readonly _orders = signal<OrderDto[]>([]);
+  private readonly _subscriptions = signal<SubscriptionDto[]>([]);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
 
   readonly users$ = this._users.asReadonly();
   readonly transactions$ = this._transactions.asReadonly();
   readonly orders$ = this._orders.asReadonly();
+  readonly subscriptions$ = this._subscriptions.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -95,7 +100,11 @@ export class GallinesService {
         case 'comandes':
           await this.loadOrders();
           break;
+        case 'subscripcions':
+          await this.loadSubscriptions();
+          break;
         case 'transactions':
+          await this.loadTransactions();
           if (this._users().length === 0) await this.loadUsers();
           break;
         case 'members':
@@ -127,6 +136,11 @@ export class GallinesService {
     if (res.status === 'fulfilled') this._orders.set(res.value ?? []);
   }
 
+  private async loadSubscriptions(): Promise<void> {
+    const res = (await this.wrap<SubscriptionDto[]>(this.api.getSubscriptions())) as any;
+    if (res.status === 'fulfilled') this._subscriptions.set(res.value ?? []);
+  }
+
   private async loadUsers(): Promise<void> {
     try {
       const users = await lastValueFrom(this.api.getUsers());
@@ -134,6 +148,11 @@ export class GallinesService {
     } catch (e) {
       console.error('GallinesService: Error carregant usuaris:', e);
     }
+  }
+
+  private async loadTransactions(): Promise<void> {
+    const res = (await this.wrap<TransactionDto[]>(this.api.getTransactions())) as any;
+    if (res.status === 'fulfilled') this._transactions.set(res.value ?? []);
   }
 
   addTransaction(dto: {
@@ -196,5 +215,49 @@ export class GallinesService {
   deleteOrder(orderId: string): Promise<void> {
     return lastValueFrom(this.api.deleteOrder(orderId))
       .then(() => void this.load(false));
+  }
+
+  createSubscription(dto: CreateSubscriptionDto): Promise<boolean> {
+    if (!dto.clientName?.trim() || !dto.mitgesDotzenes) return Promise.resolve(false);
+    return lastValueFrom(this.api.createSubscription(dto))
+      .then(() => {
+        void this.loadSubscriptions();
+        void this.loadOrders();
+        return true;
+      })
+      .catch(() => false);
+  }
+
+  updateSubscription(id: string, dto: UpdateSubscriptionDto): Promise<boolean> {
+    return lastValueFrom(this.api.updateSubscription(id, dto))
+      .then(() => {
+        void this.loadSubscriptions();
+        return true;
+      })
+      .catch(() => false);
+  }
+
+  deleteSubscription(id: string): Promise<void> {
+    return lastValueFrom(this.api.deleteSubscription(id))
+      .then(() => void this.loadSubscriptions());
+  }
+
+  generateWeeklyOrders(): Promise<OrderDto[] | null> {
+    return lastValueFrom(this.api.generateWeeklyOrders())
+      .then((orders) => {
+        void this.loadOrders();
+        void this.loadSubscriptions();
+        return orders;
+      })
+      .catch(() => null);
+  }
+
+  chargeMonth(subscriptionId: string, year?: number, month?: number): Promise<{ orders: OrderDto[]; amount: number } | null> {
+    return lastValueFrom(this.api.chargeMonth(subscriptionId, year, month))
+      .then((res) => {
+        void this.load(false);
+        return res;
+      })
+      .catch(() => null);
   }
 }
