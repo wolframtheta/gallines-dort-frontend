@@ -3,7 +3,7 @@
     <div class="login-wrap">
       <!-- Logo i Títol -->
       <div class="login-header">
-        <div class="login-logo">
+        <div class="login-logo cursor-pointer" (click)="triggerPwaInstall()" role="button" tabindex="0" (keydown.enter)="triggerPwaInstall()">
           <img src="assets/icon/logo.png" alt="Gallines d'Ort" class="block w-28 h-28 object-contain" />
         </div>
         <div class="login-title">

@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eggOutline, arrowForwardOutline } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
+import { PwaInstallService } from '../services/pwa-install.service';
 import { COLORS } from '../models';
 
 @Component({
@@ -23,11 +24,30 @@ export class LoginPage {
   error = '';
   loading = false;
 
-  constructor(
-    private readonly auth: AuthService,
-    private readonly router: Router
-  ) {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly pwa = inject(PwaInstallService);
+  private readonly toast = inject(ToastController);
+
+  constructor() {
     addIcons({ eggOutline, arrowForwardOutline });
+  }
+
+  async triggerPwaInstall(): Promise<void> {
+    if (this.pwa.canInstall()) {
+      await this.pwa.install();
+    } else {
+      const msg =
+        this.pwa.installMode() === 'ios'
+          ? 'Compartir → Afegir a la pantalla d\'inici'
+          : 'Menú del navegador → Afegir a la pantalla d\'inici o Instal·lar';
+      const t = await this.toast.create({
+        message: msg,
+        duration: 4000,
+        position: 'bottom',
+      });
+      await t.present();
+    }
   }
 
   async submit() {
