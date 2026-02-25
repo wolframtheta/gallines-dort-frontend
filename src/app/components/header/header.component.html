@@ -9,9 +9,9 @@
         </h1>
       </div>
       <div class="flex items-center text-sm font-numeric px-3 py-1.5 rounded-full"
-        [style.background-color]="(gallines.globalBalance() >= 0 ? COLORS.primary : COLORS.accent) + '20'"
-        [style.color]="gallines.globalBalance() >= 0 ? COLORS.primary : COLORS.accent">
-        {{ gallines.globalBalance() > 0 ? '+' : '' }}{{ gallines.globalBalance() | number:'1.0-10':'ca' }}€
+        [style.background-color]="(myBalance >= 0 ? COLORS.primary : COLORS.accent) + '20'"
+        [style.color]="myBalance >= 0 ? COLORS.primary : COLORS.accent">
+        {{ myBalance > 0 ? '+' : '' }}{{ myBalance | number:'1.0-10':'ca' }}€
       </div>
     </div>
   </ion-toolbar>
