@@ -15,6 +15,8 @@ import { errorInterceptor } from './app/interceptors/error.interceptor';
 
 import { registerLocaleData } from '@angular/common';
 import localeCa from '@angular/common/locales/ca';
+import { isDevMode } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
 
 registerLocaleData(localeCa);
 
@@ -24,5 +26,9 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 });
