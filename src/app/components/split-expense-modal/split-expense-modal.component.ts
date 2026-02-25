@@ -2,7 +2,6 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonModal,
   IonHeader,
   IonToolbar,
   IonTitle,
@@ -48,7 +47,6 @@ export interface SplitResult {
     CommonModule,
     FormsModule,
     DecimalPipe,
-    IonModal,
     IonHeader,
     IonToolbar,
     IonTitle,
