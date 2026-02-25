@@ -96,6 +96,16 @@ export class PwaInstallService {
     }
   }
 
+  /** Esborra l'estat dismissed per tornar a mostrar el banner (ex. al login) */
+  resetDismissed(): void {
+    this.dismissed.set(false);
+    if (isPlatformBrowser(this.platformId)) {
+      try {
+        localStorage.removeItem(PWA_DISMISSED_KEY);
+      } catch {}
+    }
+  }
+
   /** True si l'app s'ha obert des de la pantalla d'inici (instal·lada) */
   readonly isInstalled = computed(() => {
     if (!isPlatformBrowser(this.platformId)) return false;

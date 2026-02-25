@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { eggOutline, arrowForwardOutline } from 'ionicons/icons';
 import { AuthService } from '../services/auth.service';
+import { PwaInstallService } from '../services/pwa-install.service';
 import { COLORS } from '../models';
 
 @Component({
@@ -14,7 +15,7 @@ import { COLORS } from '../models';
   styleUrls: ['login.page.scss'],
   imports: [CommonModule, FormsModule, IonContent, IonIcon],
 })
-export class LoginPage {
+export class LoginPage implements OnInit {
   readonly COLORS = COLORS;
   isLogin = true;
   email = '';
@@ -25,9 +26,14 @@ export class LoginPage {
 
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly pwa = inject(PwaInstallService);
 
   constructor() {
     addIcons({ eggOutline, arrowForwardOutline });
+  }
+
+  ngOnInit(): void {
+    this.pwa.resetDismissed();
   }
 
   async submit() {
