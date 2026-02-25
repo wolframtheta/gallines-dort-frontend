@@ -1,0 +1,32 @@
+@if (pwa.showBanner) {
+  <div class="pwa-banner">
+    <div class="pwa-banner__content">
+      <img src="icons/launchericon-96x96.png" alt="" class="pwa-banner__icon" />
+      <div class="pwa-banner__text">
+        <strong>Instal·la Gallines d'Ort</strong>
+        @switch (pwa.installMode()) {
+          @case ('native') {
+            <span>Afegir a la pantalla d'inici per accedir més ràpid</span>
+          }
+          @case ('ios') {
+            <span>Compartir <ion-icon name="share-outline" class="inline-icon" /> → Afegir a la pantalla d'inici</span>
+          }
+          @case ('generic') {
+            <span>Menú del navegador → Afegir a la pantalla d'inici o Instal·lar</span>
+          }
+        }
+      </div>
+    </div>
+    <div class="pwa-banner__actions">
+      @if (pwa.canInstall()) {
+        <ion-button fill="solid" size="small" (click)="install()">
+          <ion-icon name="download-outline" slot="start" />
+          Instal·lar
+        </ion-button>
+      }
+      <ion-button fill="clear" size="small" (click)="dismiss()">
+        <ion-icon name="close-outline" />
+      </ion-button>
+    </div>
+  </div>
+}

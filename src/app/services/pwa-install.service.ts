@@ -1,0 +1,91 @@
+import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+const PWA_DISMISSED_KEY = 'pwa_install_dismissed';
+
+export type InstallMode = 'native' | 'ios' | 'generic';
+
+@Injectable({ providedIn: 'root' })
+export class PwaInstallService {
+  private readonly platformId = inject(PLATFORM_ID);
+
+  readonly canInstall = signal(false);
+  readonly installMode = signal<InstallMode>('generic');
+  readonly dismissed = signal(
+    isPlatformBrowser(this.platformId) && localStorage.getItem(PWA_DISMISSED_KEY) === '1'
+  );
+
+  private deferredPrompt: BeforeInstallPromptEvent | null = null;
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.detectInstallMode();
+      window.addEventListener('beforeinstallprompt', this.handlePrompt.bind(this));
+      window.addEventListener('appinstalled', this.handleInstalled.bind(this));
+      const w = window as Window & { __deferredPrompt?: Event };
+      if (w.__deferredPrompt) {
+        this.deferredPrompt = w.__deferredPrompt as BeforeInstallPromptEvent;
+        this.canInstall.set(true);
+        this.installMode.set('native');
+      }
+    }
+  }
+
+  private detectInstallMode(): void {
+    const ua = navigator.userAgent;
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone;
+    if (isStandalone) return;
+
+    if (/iPhone|iPad|iPod/.test(ua) && !(window as unknown as { MSStream?: boolean }).MSStream) {
+      this.installMode.set('ios');
+    } else if (/Android|webOS|Mobile/i.test(ua) || 'ontouchstart' in window) {
+      this.installMode.set('generic');
+    }
+  }
+
+  private handlePrompt(e: Event): void {
+    e.preventDefault();
+    this.deferredPrompt = e as BeforeInstallPromptEvent;
+    this.canInstall.set(true);
+    this.installMode.set('native');
+  }
+
+  private handleInstalled(): void {
+    this.canInstall.set(false);
+    this.deferredPrompt = null;
+  }
+
+  async install(): Promise<boolean> {
+    if (!this.deferredPrompt) return false;
+    this.deferredPrompt.prompt();
+    const { outcome } = await this.deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      this.deferredPrompt = null;
+      this.canInstall.set(false);
+      return true;
+    }
+    return false;
+  }
+
+  dismiss(): void {
+    this.dismissed.set(true);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(PWA_DISMISSED_KEY, '1');
+    }
+  }
+
+  get showBanner(): boolean {
+    if (!isPlatformBrowser(this.platformId) || this.dismissed()) return false;
+    if (window.matchMedia('(display-mode: standalone)').matches) return false;
+    if ((navigator as Navigator & { standalone?: boolean }).standalone) return false;
+
+    return this.canInstall() || this.installMode() === 'ios' || this.installMode() === 'generic';
+  }
+}
