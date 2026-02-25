@@ -74,25 +74,40 @@
       </div>
       } @else {
       @for (t of sortedTransactions; track t.id) {
-      <div class="bg-white p-4 rounded-3xl shadow-sm border border-[#EBE8D8] flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
-            [style.background-color]="t.type === 'expense' ? COLORS.accent + '15' : COLORS.primary + '15'"
-            [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
-            <ion-icon [name]="t.type === 'expense' ? 'cash-outline' : 'egg-outline'"
-              style="font-size: 20px"></ion-icon>
+      <ion-item-sliding class="mb-3 rounded-3xl shadow-sm border border-[#EBE8D8] bg-white relative">
+        @if (deletingTransactionId() === t.id) {
+          <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-3xl z-10">
+            <ion-spinner name="crescent" [style.color]="COLORS.primary"></ion-spinner>
           </div>
-          <div class="flex flex-col gap-0.5">
-            <p class="font-body text-sm" [style.color]="COLORS.textMain">{{ t.description }}</p>
-            <p class="text-xs font-body" [style.color]="COLORS.textLight">
-              {{ getMemberName(t) }} • {{ t.date }}
-            </p>
+        }
+        <ion-item lines="none" class="ion-no-padding" style="--background: transparent; --inner-padding-end: 0;">
+          <div class="w-full p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center"
+                [style.background-color]="t.type === 'expense' ? COLORS.accent + '15' : COLORS.primary + '15'"
+                [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+                <ion-icon [name]="t.type === 'expense' ? 'cash-outline' : 'egg-outline'"
+                  style="font-size: 20px"></ion-icon>
+              </div>
+              <div class="flex flex-col gap-0.5 w-40">
+                <p class="font-body text-sm" [style.color]="COLORS.textMain">{{ t.description }}</p>
+                <p class="text-xs font-body" [style.color]="COLORS.textLight">
+                  {{ getMemberName(t) }} • {{ t.date }}
+                </p>
+              </div>
+            </div>
+            <span class="font-numeric text-lg" [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
+              {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }} €
+            </span>
           </div>
-        </div>
-        <span class="font-numeric text-lg" [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
-          {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }} €
-        </span>
-      </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="deleteTransaction(t)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
       }
       }
     </div>
