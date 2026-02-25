@@ -3,6 +3,7 @@ import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, closeOutline, shareOutline } from 'ionicons/icons';
 import { PwaInstallService } from '../../services/pwa-install.service';
+import { COLORS } from '../../models';
 
 addIcons({ downloadOutline, closeOutline, shareOutline });
 
@@ -15,6 +16,7 @@ addIcons({ downloadOutline, closeOutline, shareOutline });
 })
 export class PwaInstallBannerComponent {
   readonly pwa = inject(PwaInstallService);
+  readonly COLORS = COLORS;
 
   async install(): Promise<void> {
     await this.pwa.install();

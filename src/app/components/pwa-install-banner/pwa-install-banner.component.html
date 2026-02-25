@@ -1,7 +1,9 @@
 @if (pwa.showBanner()) {
-  <div class="pwa-banner">
-    <div class="pwa-banner__content">
-      <img src="icons/launchericon-96x96.png" alt="" class="pwa-banner__icon" />
+  <div class="pwa-banner" [style.--pwa-primary]="COLORS.primary" [style.--pwa-accent]="COLORS.accent" [style.--pwa-highlight]="COLORS.highlight" [style.--pwa-bg]="COLORS.bg">
+    <div class="pwa-banner__row pwa-banner__row--content">
+      <div class="pwa-banner__icon-wrap">
+        <img src="icons/launchericon-96x96.png" alt="" class="pwa-banner__icon" />
+      </div>
       <div class="pwa-banner__text">
         <strong>Instal·la Gallines d'Ort</strong>
         @switch (pwa.installMode()) {
@@ -17,14 +19,14 @@
         }
       </div>
     </div>
-    <div class="pwa-banner__actions">
+    <div class="pwa-banner__row pwa-banner__row--actions">
       @if (pwa.canInstall()) {
-        <ion-button fill="solid" size="small" (click)="install()">
+        <ion-button class="pwa-banner__install-btn" fill="solid" size="small" (click)="install()">
           <ion-icon name="download-outline" slot="start" />
           Instal·lar
         </ion-button>
       }
-      <ion-button fill="clear" size="small" (click)="dismiss()">
+      <ion-button class="pwa-banner__dismiss-btn" fill="clear" size="small" (click)="dismiss()">
         <ion-icon name="close-outline" />
       </ion-button>
     </div>
