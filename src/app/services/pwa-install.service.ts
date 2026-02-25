@@ -17,7 +17,14 @@ export class PwaInstallService {
   readonly canInstall = signal(false);
   readonly installMode = signal<InstallMode>('generic');
   readonly dismissed = signal(
-    isPlatformBrowser(this.platformId) && localStorage.getItem(PWA_DISMISSED_KEY) === '1'
+    (() => {
+      if (!isPlatformBrowser(this.platformId)) return false;
+      try {
+        return localStorage.getItem(PWA_DISMISSED_KEY) === '1';
+      } catch {
+        return false;
+      }
+    })()
   );
 
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
