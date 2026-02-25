@@ -1,4 +1,4 @@
-import { Injectable, signal, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, signal, computed, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -47,6 +47,8 @@ export class PwaInstallService {
       this.installMode.set('ios');
     } else if (/Android|webOS|Mobile/i.test(ua) || 'ontouchstart' in window) {
       this.installMode.set('generic');
+    } else {
+      this.installMode.set('generic');
     }
   }
 
@@ -81,11 +83,16 @@ export class PwaInstallService {
     }
   }
 
-  get showBanner(): boolean {
-    if (!isPlatformBrowser(this.platformId) || this.dismissed()) return false;
+  readonly showBanner = computed(() => {
+    if (!isPlatformBrowser(this.platformId)) return false;
     if (window.matchMedia('(display-mode: standalone)').matches) return false;
     if ((navigator as Navigator & { standalone?: boolean }).standalone) return false;
 
+    const forceShow = new URLSearchParams(location.search).get('showPwa') === '1';
+    if (forceShow) return true;
+
+    if (this.dismissed()) return false;
+
     return this.canInstall() || this.installMode() === 'ios' || this.installMode() === 'generic';
-  }
+  });
 }
