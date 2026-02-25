@@ -34,13 +34,20 @@ export class LoginPage {
   }
 
   async triggerPwaInstall(): Promise<void> {
+    console.log('[PWA] triggerPwaInstall called', {
+      canInstall: this.pwa.canInstall(),
+      installMode: this.pwa.installMode(),
+    });
     if (this.pwa.canInstall()) {
+      console.log('[PWA] Calling native install()');
       await this.pwa.install();
+      console.log('[PWA] install() completed');
     } else {
       const msg =
         this.pwa.installMode() === 'ios'
           ? 'Compartir → Afegir a la pantalla d\'inici'
           : 'Menú del navegador → Afegir a la pantalla d\'inici o Instal·lar';
+      console.log('[PWA] Showing toast:', msg);
       const t = await this.toast.create({
         message: msg,
         duration: 4000,

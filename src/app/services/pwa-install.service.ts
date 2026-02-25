@@ -30,12 +30,15 @@ export class PwaInstallService {
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
 
   constructor() {
+    console.log('[PWA] PwaInstallService constructor', { isBrowser: isPlatformBrowser(this.platformId) });
     if (isPlatformBrowser(this.platformId)) {
       this.detectInstallMode();
+      console.log('[PWA] installMode:', this.installMode());
       window.addEventListener('beforeinstallprompt', this.handlePrompt.bind(this));
       window.addEventListener('appinstalled', this.handleInstalled.bind(this));
       const w = window as Window & { __deferredPrompt?: Event };
       if (w.__deferredPrompt) {
+        console.log('[PWA] Found __deferredPrompt from early script');
         this.deferredPrompt = w.__deferredPrompt as BeforeInstallPromptEvent;
         this.canInstall.set(true);
         this.installMode.set('native');
@@ -60,6 +63,7 @@ export class PwaInstallService {
   }
 
   private handlePrompt(e: Event): void {
+    console.log('[PWA] beforeinstallprompt fired');
     e.preventDefault();
     this.deferredPrompt = e as BeforeInstallPromptEvent;
     this.canInstall.set(true);
@@ -72,9 +76,11 @@ export class PwaInstallService {
   }
 
   async install(): Promise<boolean> {
+    console.log('[PWA] install() called', { hasDeferredPrompt: !!this.deferredPrompt });
     if (!this.deferredPrompt) return false;
     this.deferredPrompt.prompt();
     const { outcome } = await this.deferredPrompt.userChoice;
+    console.log('[PWA] userChoice:', outcome);
     if (outcome === 'accepted') {
       this.deferredPrompt = null;
       this.canInstall.set(false);
