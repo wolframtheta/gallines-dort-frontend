@@ -96,16 +96,24 @@ export class PwaInstallService {
     }
   }
 
+  /** True si l'app s'ha obert des de la pantalla d'inici (instal·lada) */
+  readonly isInstalled = computed(() => {
+    if (!isPlatformBrowser(this.platformId)) return false;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      !!(navigator as Navigator & { standalone?: boolean }).standalone
+    );
+  });
+
   readonly showBanner = computed(() => {
     if (!isPlatformBrowser(this.platformId)) return false;
-    if (window.matchMedia('(display-mode: standalone)').matches) return false;
-    if ((navigator as Navigator & { standalone?: boolean }).standalone) return false;
+    if (this.isInstalled()) return false;
 
     const forceShow = new URLSearchParams(location.search).get('showPwa') === '1';
     if (forceShow) return true;
 
     if (this.dismissed()) return false;
 
-    return this.canInstall() || this.installMode() === 'ios' || this.installMode() === 'generic';
+    return this.canInstall();
   });
 }
