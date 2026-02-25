@@ -53,13 +53,10 @@ export class BalancePage implements ViewWillEnter {
   }
 
   getMemberName(t: TransactionDto): string {
-    if (t.type === 'income') {
-      if (t.orderId) return `Comanda ${t.orderId.substring(0, 8)}`;
-      return t.clientName || 'Ingrés';
-    }
     if (t.user) return t.user.displayName || t.user.email;
     if (t.userId) return this.gallines.getMemberName(t.userId);
-    return 'General';
+    if (t.clientName) return t.clientName;
+    return 'Desconegut';
   }
 
   async deleteTransaction(id: string): Promise<void> {

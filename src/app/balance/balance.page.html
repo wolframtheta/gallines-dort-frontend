@@ -96,7 +96,7 @@
                 <ion-icon [name]="t.type === 'expense' ? 'cash-outline' : 'egg-outline'"
                   style="font-size: 20px"></ion-icon>
               </div>
-              <div class="flex flex-col gap-0.5">
+              <div class="flex flex-col gap-0.5 w-40">
                 <p class="font-body text-sm" [style.color]="COLORS.textMain">{{ t.description }}</p>
                 <p class="text-xs font-body" [style.color]="COLORS.textLight">
                   {{ getMemberName(t) }} • {{ t.date }}
@@ -105,7 +105,7 @@
             </div>
             <div class="flex items-center gap-3">
               <span class="font-numeric text-lg" [style.color]="t.type === 'expense' ? COLORS.accent : COLORS.primary">
-                {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }}
+                {{ t.type === 'expense' ? '-' : '+' }}{{ t.amount | number:'1.0-10':'ca' }} €
               </span>
             </div>
           </div>
