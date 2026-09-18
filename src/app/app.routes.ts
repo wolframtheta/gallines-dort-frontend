@@ -27,9 +27,9 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'balance',
+        path: 'ingresos',
         loadComponent: () =>
-          import('./balance/balance.page').then((m) => m.BalancePage),
+          import('./ingresos/ingresos.page').then((m) => m.IngresosPage),
       },
       {
         path: 'comandes',

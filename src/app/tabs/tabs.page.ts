@@ -12,10 +12,9 @@ import {
   wallet,
   cashOutline,
   cash,
-  scaleOutline,
-  scale,
   listOutline,
   repeatOutline,
+  arrowDownCircleOutline,
 } from 'ionicons/icons';
 @Component({
   selector: 'app-tabs',
@@ -30,10 +29,9 @@ export class TabsPage {
       wallet,
       cashOutline,
       cash,
-      scaleOutline,
-      scale,
       listOutline,
       repeatOutline,
+      arrowDownCircleOutline,
     });
   }
 }
