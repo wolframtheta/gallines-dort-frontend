@@ -1,163 +1,291 @@
-<ion-header>
-  <ion-toolbar [style.--background]="COLORS.bg">
-    <ion-title class="font-heading text-base" [style.color]="COLORS.textMain">Dividir Despesa</ion-title>
-    <ion-button slot="end" fill="clear" (click)="dismiss()">
-      <ion-icon name="close-outline" [style.color]="COLORS.textLight"></ion-icon>
-    </ion-button>
-  </ion-toolbar>
+<ion-header class="ion-no-border split-modal-header">
+  <div class="split-modal-header-bar">
+    <h2 id="split-modal-heading" class="split-modal-title">Avançat</h2>
+    <button type="button" class="split-modal-close" (click)="dismiss()" aria-label="Tancar">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
 </ion-header>
 
-<ion-content [style.--background]="COLORS.bg">
-  <div class="p-4 flex flex-col gap-4">
-    <!-- Total -->
-    <div class="bg-white p-4 rounded-2xl border border-[#EBE8D8]">
-      <label class="text-xs font-body mb-1 block" [style.color]="COLORS.textLight">Import a dividir (€)</label>
-      <input type="number" step="0.01" min="0" [(ngModel)]="totalAmount" (ngModelChange)="onTotalAmountChange()"
-        placeholder="0.00"
-        class="w-full text-2xl font-numeric-medium px-0 py-1 border-0 border-b-2 focus:outline-none focus:border-[#F2C335] rounded-none"
-        [style.color]="COLORS.primary" [style.border-color]="COLORS.textLight" />
+<ion-content [style.--background]="COLORS.bg" class="ion-padding" aria-labelledby="split-modal-heading">
+  <div class="flex flex-col gap-5 pb-6">
+    <!-- Import -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Import a dividir
+      </h3>
+      <div class="relative">
+        <input
+          id="split-total-amount"
+          type="number"
+          step="0.01"
+          appSelectOnFocus
+          min="0"
+          [(ngModel)]="totalAmount"
+          (ngModelChange)="onTotalAmountChange()"
+          placeholder="0.00"
+          class="w-full pl-4 pr-10 py-3.5 bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-xl font-numeric"
+          [style.color]="COLORS.textMain"
+        />
+        <span class="absolute right-4 top-4 font-numeric-medium opacity-50" aria-hidden="true">€</span>
+      </div>
     </div>
 
     <!-- Concepte -->
-    <div class="bg-white p-4 rounded-2xl border border-[#EBE8D8]">
-      <label class="text-xs font-body mb-1 block" [style.color]="COLORS.textLight">Concepte (opcional)</label>
-      <input type="text" [(ngModel)]="description" placeholder="Despesa compartida"
-        class="w-full px-4 py-2 text-sm bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-xl focus:outline-none font-body"
-        [style.color]="COLORS.textMain" />
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Concepte
+      </h3>
+      <input
+        id="split-description"
+        type="text"
+        [(ngModel)]="description"
+        placeholder="Despesa compartida (opcional)"
+        class="w-full px-4 py-3.5 bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-base font-body"
+        [style.color]="COLORS.textMain"
+      />
     </div>
 
-    <!-- Mode selector -->
-    <div class="bg-white p-4 rounded-2xl border border-[#EBE8D8]">
-      <p class="text-xs font-body mb-3" [style.color]="COLORS.textLight">Com dividir?</p>
-      <ion-segment [(ngModel)]="splitMode" (ionChange)="onModeChange()" class="mb-0">
-        <ion-segment-button value="equal">
-          <ion-label class="text-xs font-body">Igual</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="shares">
-          <ion-label class="text-xs font-body">Parts</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="percentages">
-          <ion-label class="text-xs font-body">%</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="amounts">
-          <ion-label class="text-xs font-body">Import</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-    </div>
+    <!-- Qui ha pagat -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Qui ha pagat
+      </h3>
+      <p class="text-xs font-body -mt-2" [style.color]="COLORS.textLight">
+        Indica qui ha avançat els diners i quant.
+      </p>
 
-    <!-- Membres -->
-    <div class="bg-white p-4 rounded-2xl border border-[#EBE8D8]">
-      <p class="text-xs font-body mb-3" [style.color]="COLORS.textLight">Membres</p>
-
-      <div class="flex flex-col gap-3">
-        @for (split of splits; track split.member.id) {
-        <div class="flex flex-col gap-2 p-3 rounded-xl bg-[#F7F4E8]">
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 cursor-pointer flex-1">
-              <input type="checkbox"
-                [checked]="split.owes > 0 || (split.shares ?? 0) > 0 || (split.percentage ?? 0) > 0"
-                (change)="toggleMember(split)" class="w-4 h-4 rounded" [style.accent-color]="COLORS.primary" />
-              <span class="font-body text-sm" [style.color]="COLORS.textMain">
-                {{ split.member.name }}
+      @if (payers.length === 0) {
+        <p class="text-sm font-body italic text-center py-4" [style.color]="COLORS.textLight">
+          Cap membre disponible
+        </p>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (row of payers; track row.member.id) {
+            <div class="flex items-center gap-3 p-4 rounded-2xl border border-[#EBE8D8] bg-white">
+              <span class="font-body font-medium text-base truncate flex-1 min-w-0" [style.color]="COLORS.textMain">
+                {{ row.member.name }}
               </span>
-            </label>
-            <span class="font-numeric text-sm" [style.color]="COLORS.primary">
-              {{ split.owes | number:'1.2-2':'ca' }} €
-            </span>
-          </div>
-
-          @if (split.owes > 0 || (split.shares ?? 0) > 0 || (split.percentage ?? 0) > 0) {
-          <div class="grid grid-cols-2 gap-2">
-            <!-- Ha pagat -->
-            <div class="flex flex-col gap-1">
-              <label class="text-xs font-body" [style.color]="COLORS.textLight">Ha pagat</label>
-              <input type="number" step="0.01" [(ngModel)]="split.paid" (ngModelChange)="onPaidChange()"
-                class="px-3 py-2 bg-white border border-[#EBE8D8] rounded-lg text-sm font-numeric focus:outline-none focus:border-[#F2C335]"
-                [style.color]="COLORS.textMain" />
-            </div>
-
-            <!-- Deu (segons mode) -->
-            <div class="flex flex-col gap-1">
-              @if (splitMode === 'equal') {
-              <label class="text-xs font-body" [style.color]="COLORS.textLight">Deu</label>
-              <input type="text" [value]="split.owes | number:'1.2-2':'ca'" disabled
-                class="px-3 py-2 bg-gray-100 border border-[#EBE8D8] rounded-lg text-sm font-numeric"
-                [style.color]="COLORS.textLight" />
-              }
-              @if (splitMode === 'shares') {
-              <label class="text-xs font-body" [style.color]="COLORS.textLight">Parts</label>
-              <input type="number" step="1" min="0" [(ngModel)]="split.shares" (ngModelChange)="onSharesChange()"
-                class="px-3 py-2 bg-white border border-[#EBE8D8] rounded-lg text-sm font-numeric focus:outline-none focus:border-[#F2C335]"
-                [style.color]="COLORS.textMain" />
-              }
-              @if (splitMode === 'percentages') {
-              <label class="text-xs font-body" [style.color]="COLORS.textLight">Percentatge</label>
-              <div class="relative">
-                <input type="number" step="0.1" min="0" max="100" [(ngModel)]="split.percentage"
-                  (ngModelChange)="onPercentagesChange()"
-                  class="w-full px-3 py-2 pr-6 bg-white border border-[#EBE8D8] rounded-lg text-sm font-numeric focus:outline-none focus:border-[#F2C335]"
-                  [style.color]="COLORS.textMain" />
-                <span class="absolute right-3 top-2 text-xs" [style.color]="COLORS.textLight">%</span>
+              <div class="relative w-28 shrink-0">
+                <label class="sr-only" [for]="'paid-' + row.member.id">Import pagat per {{ row.member.name }}</label>
+                <input
+                  [id]="'paid-' + row.member.id"
+                  type="number"
+                  step="0.01"
+                  appSelectOnFocus
+                  min="0"
+                  [(ngModel)]="row.amount"
+                  (ngModelChange)="onPayerAmountChange()"
+                  placeholder="0"
+                  class="w-full pl-3 pr-8 py-3 bg-[#F7F4E8] border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-base font-numeric text-right"
+                  [style.color]="COLORS.textMain"
+                />
+                <span class="absolute right-3 top-3.5 text-xs opacity-50 font-numeric" aria-hidden="true">€</span>
               </div>
-              }
-              @if (splitMode === 'amounts') {
-              <label class="text-xs font-body" [style.color]="COLORS.textLight">Deu</label>
-              <input type="number" step="0.01" [(ngModel)]="split.owes" (ngModelChange)="onAmountsChange()"
-                class="px-3 py-2 bg-white border border-[#EBE8D8] rounded-lg text-sm font-numeric focus:outline-none focus:border-[#F2C335]"
-                [style.color]="COLORS.textMain" />
-              }
             </div>
-          </div>
           }
         </div>
+      }
+    </div>
+
+    <!-- Per qui és -->
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Per qui és la despesa
+      </h3>
+      <p class="text-xs font-body -mt-2" [style.color]="COLORS.textLight">
+        Marca qui ha d'assumir la despesa i com es reparteix.
+      </p>
+
+      <h4 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Com dividir?
+      </h4>
+      <div class="split-mode-grid" role="tablist" aria-label="Com dividir la despesa">
+        @for (mode of splitModes; track mode.value) {
+          <button
+            type="button"
+            role="tab"
+            class="split-mode-btn"
+            [class.split-mode-btn--active]="splitMode === mode.value"
+            [attr.aria-selected]="splitMode === mode.value"
+            (click)="setSplitMode(mode.value)"
+          >
+            {{ mode.label }}
+          </button>
         }
       </div>
+
+      @if (beneficiaries.length === 0) {
+        <p class="text-sm font-body italic text-center py-4" [style.color]="COLORS.textLight">
+          Cap membre disponible
+        </p>
+      } @else {
+        <div class="flex flex-col gap-3">
+          @for (row of beneficiaries; track row.member.id) {
+            <div
+              class="flex flex-col gap-3 p-4 rounded-2xl border border-[#EBE8D8]"
+              [class.bg-[#F7F4E8]]="row.active"
+              [class.bg-white]="!row.active"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0" [for]="'beneficiary-' + row.member.id">
+                  <input
+                    [id]="'beneficiary-' + row.member.id"
+                    type="checkbox"
+                    [checked]="row.active"
+                    (change)="toggleBeneficiary(row)"
+                    class="w-4 h-4 rounded shrink-0"
+                    [style.accent-color]="COLORS.primary"
+                  />
+                  <span class="font-body font-medium text-base truncate" [style.color]="COLORS.textMain">
+                    {{ row.member.name }}
+                  </span>
+                </label>
+                @if (row.active) {
+                  <span class="font-numeric font-semibold text-lg shrink-0" [style.color]="COLORS.primary">
+                    {{ row.owes | number:'1.2-2':'ca' }}€
+                  </span>
+                }
+              </div>
+
+              @if (row.active) {
+                @if (splitMode === 'equal') {
+                  <div class="flex flex-col gap-1">
+                    <span class="text-xs font-body ml-1" [style.color]="COLORS.textLight">Assignat</span>
+                    <div
+                      class="px-3 py-3 bg-white rounded-2xl text-base font-numeric"
+                      [style.color]="COLORS.textMain"
+                      aria-readonly="true"
+                    >
+                      {{ row.owes | number:'1.2-2':'ca' }}€
+                    </div>
+                  </div>
+                }
+                @if (splitMode === 'shares') {
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight" [for]="'shares-' + row.member.id">
+                      Parts
+                    </label>
+                    <input
+                      [id]="'shares-' + row.member.id"
+                      type="number"
+                      step="1"
+                      min="1"
+                      [(ngModel)]="row.shares"
+                      (ngModelChange)="onSharesChange()"
+                      class="w-full px-3 py-3 bg-white border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-base font-numeric"
+                      [style.color]="COLORS.textMain"
+                    />
+                  </div>
+                }
+                @if (splitMode === 'percentages') {
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight" [for]="'pct-' + row.member.id">
+                      Percentatge
+                    </label>
+                    <div class="relative">
+                      <input
+                        [id]="'pct-' + row.member.id"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        [(ngModel)]="row.percentage"
+                        (ngModelChange)="onPercentagesChange()"
+                        class="w-full pl-3 pr-8 py-3 bg-white border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-base font-numeric"
+                        [style.color]="COLORS.textMain"
+                      />
+                      <span class="absolute right-3 top-3.5 text-xs" [style.color]="COLORS.textLight">%</span>
+                    </div>
+                  </div>
+                }
+                @if (splitMode === 'amounts') {
+                  <div class="flex flex-col gap-1">
+                    <label class="text-xs font-body ml-1" [style.color]="COLORS.textLight" [for]="'owes-' + row.member.id">
+                      Import
+                    </label>
+                    <div class="relative">
+                      <input
+                        [id]="'owes-' + row.member.id"
+                        type="number"
+                        step="0.01"
+                        appSelectOnFocus
+                        min="0"
+                        [(ngModel)]="row.owes"
+                        (ngModelChange)="onBeneficiaryAmountChange(row)"
+                        class="w-full pl-3 pr-8 py-3 bg-white border border-transparent focus:border-[#F2C335] rounded-2xl focus:outline-none text-base font-numeric"
+                        [style.color]="COLORS.textMain"
+                      />
+                      <span class="absolute right-3 top-3.5 text-xs opacity-50 font-numeric" aria-hidden="true">€</span>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
 
     <!-- Resum -->
-    <div class="bg-white p-4 rounded-2xl border border-[#EBE8D8]">
-      <div class="flex flex-col gap-2">
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-body" [style.color]="COLORS.textLight">Total pagat</span>
-          <span class="font-numeric text-sm" [style.color]="isPaidValid() ? COLORS.primary : COLORS.accent">
-            {{ totalPaid | number:'1.2-2':'ca' }} €
-          </span>
-        </div>
-        <div class="flex justify-between items-center">
-          <span class="text-xs font-body" [style.color]="COLORS.textLight">Total deuen</span>
-          <span class="font-numeric text-sm" [style.color]="isOwedValid() ? COLORS.primary : COLORS.accent">
-            {{ totalOwed | number:'1.2-2':'ca' }} €
-          </span>
-        </div>
-        @if (splitMode === 'shares') {
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-3">
+      <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+        Resum
+      </h3>
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-body" [style.color]="COLORS.textLight">Total pagat</span>
+        <span class="font-numeric text-base font-semibold" [style.color]="isPaidValid() ? COLORS.primary : COLORS.accent">
+          {{ totalPaid | number:'1.2-2':'ca' }}€
+        </span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-body" [style.color]="COLORS.textLight">Total assignat</span>
+        <span class="font-numeric text-base font-semibold" [style.color]="isAssignedValid() ? COLORS.primary : COLORS.accent">
+          {{ totalAssigned | number:'1.2-2':'ca' }}€
+        </span>
+      </div>
+      @if (splitMode === 'shares') {
         <div class="flex justify-between items-center">
           <span class="text-xs font-body" [style.color]="COLORS.textLight">Total parts</span>
-          <span class="font-numeric text-sm" [style.color]="COLORS.textMain">
-            {{ totalShares }}
-          </span>
+          <span class="font-numeric text-base" [style.color]="COLORS.textMain">{{ totalShares }}</span>
         </div>
-        }
-        @if (splitMode === 'percentages') {
+      }
+      @if (splitMode === 'percentages') {
         <div class="flex justify-between items-center">
           <span class="text-xs font-body" [style.color]="COLORS.textLight">Total %</span>
-          <span class="font-numeric text-sm" [style.color]="isPercentageValid() ? COLORS.primary : COLORS.accent">
+          <span class="font-numeric text-base font-semibold" [style.color]="isPercentageValid() ? COLORS.primary : COLORS.accent">
             {{ totalPercentage | number:'1.1-1':'ca' }}%
           </span>
         </div>
-        }
-      </div>
+      }
+      @if (!isValid && totalAmount > 0) {
+        <p class="text-xs font-body mt-1" [style.color]="COLORS.accent" role="status">
+          {{ validationMessage }}
+        </p>
+      }
     </div>
 
-    <!-- Buttons -->
-    <div class="flex gap-3 pb-4">
-      <button type="button" (click)="dismiss()" class="flex-1 py-3 rounded-2xl font-body border-2"
-        [style.border-color]="COLORS.textLight" [style.color]="COLORS.textLight">
-        Cancel·lar
-      </button>
-      <button type="button" (click)="confirm()" [disabled]="!isValid"
-        class="flex-1 py-3 rounded-2xl font-body text-white shadow-lg transition-opacity"
-        [style.background-color]="COLORS.primary" [style.opacity]="isValid ? '1' : '0.5'">
+    <!-- Accions -->
+    <div class="flex flex-col gap-3">
+      <button
+        type="button"
+        (click)="confirm()"
+        [disabled]="!isValid"
+        class="w-full text-white py-4 rounded-2xl font-numeric flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        [style.background-color]="COLORS.primary"
+        [style.box-shadow]="'0 10px 20px -5px ' + COLORS.primary + '60'"
+      >
+        <ion-icon name="checkmark-outline" style="font-size: 20px"></ion-icon>
         Confirmar
+      </button>
+      <button
+        type="button"
+        (click)="dismiss()"
+        class="w-full py-3 rounded-2xl font-body border-2 transition-opacity hover:opacity-80"
+        [style.border-color]="COLORS.textLight"
+        [style.color]="COLORS.textLight"
+      >
+        Cancel·lar
       </button>
     </div>
   </div>
