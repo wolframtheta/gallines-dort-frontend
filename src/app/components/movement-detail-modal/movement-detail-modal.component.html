@@ -1,0 +1,140 @@
+<ion-header class="ion-no-border detail-modal-header">
+  <div class="detail-modal-header-bar">
+    <h2 id="detail-modal-heading" class="detail-modal-title">{{ title }}</h2>
+    <button type="button" class="detail-modal-close" (click)="dismiss()" aria-label="Tancar">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content [style.--background]="COLORS.bg" class="ion-padding" aria-labelledby="detail-modal-heading">
+  <div class="flex flex-col gap-5 pb-6">
+    @if (data.kind === 'transaction' && !isSplitExpense) {
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+        <div class="flex justify-between items-start gap-3">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Import</span>
+          <span
+            class="text-2xl font-numeric font-semibold"
+            [style.color]="isExpense ? COLORS.accent : COLORS.primary"
+          >
+            {{ isExpense ? '-' : '+' }}{{ data.transaction.amount | number:'1.2-2':'ca' }}€
+          </span>
+        </div>
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">
+            {{ isExpense ? 'Qui ha pagat' : 'Assignat a' }}
+          </span>
+          <span class="font-body font-medium" [style.color]="COLORS.textMain">{{ payerName }}</span>
+        </div>
+        @if (data.transaction.description) {
+          <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+            <span class="text-xs font-body" [style.color]="COLORS.textLight">Concepte</span>
+            <span class="font-body text-right" [style.color]="COLORS.textMain">{{ data.transaction.description }}</span>
+          </div>
+        }
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Data</span>
+          <span class="font-numeric" [style.color]="COLORS.textMain">{{ data.transaction.date }}</span>
+        </div>
+      </div>
+    }
+
+    @if (isSplitExpense && splitDetail) {
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+        <div class="flex justify-between items-start gap-3">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Import total</span>
+          <span class="text-2xl font-numeric font-semibold" [style.color]="COLORS.accent">
+            -{{ splitDetail.totalAmount | number:'1.2-2':'ca' }}€
+          </span>
+        </div>
+        @if (splitDetail.description) {
+          <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+            <span class="text-xs font-body" [style.color]="COLORS.textLight">Concepte</span>
+            <span class="font-body text-right" [style.color]="COLORS.textMain">{{ splitDetail.description }}</span>
+          </div>
+        }
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Data</span>
+          <span class="font-numeric" [style.color]="COLORS.textMain">{{ splitDetail.date }}</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+        <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+          Qui ha pagat
+        </h3>
+        <div class="flex justify-between items-center p-3 rounded-2xl bg-[#F7F4E8]">
+          <span class="font-body font-medium" [style.color]="COLORS.textMain">{{ splitDetail.payerName }}</span>
+          <span class="font-numeric font-semibold" [style.color]="COLORS.primary">
+            {{ splitDetail.totalAmount | number:'1.2-2':'ca' }}€
+          </span>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+        <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+          Per qui és
+        </h3>
+        <div class="flex flex-col gap-2">
+          @for (row of splitDetail.assignments; track row.name) {
+            <div class="flex justify-between items-center p-3 rounded-2xl border border-[#EBE8D8]">
+              <span class="font-body" [style.color]="COLORS.textMain">{{ row.name }}</span>
+              <span class="font-numeric font-semibold" [style.color]="COLORS.primary">
+                {{ row.amount | number:'1.2-2':'ca' }}€
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (splitDetail.debts.length > 0) {
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+          <h3 class="text-xs font-heading uppercase tracking-wider" [style.color]="COLORS.textLight">
+            Deutes generats
+          </h3>
+          <div class="flex flex-col gap-2">
+            @for (debt of splitDetail.debts; track debt.fromName + debt.toName) {
+              <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-[#F7F4E8] text-sm font-body">
+                <span [style.color]="COLORS.textMain">{{ debt.fromName }}</span>
+                <span class="font-numeric shrink-0" [style.color]="COLORS.textLight">→</span>
+                <span [style.color]="COLORS.textMain">{{ debt.toName }}</span>
+                <span class="font-numeric font-semibold ml-auto shrink-0" [style.color]="COLORS.primary">
+                  {{ debt.amount | number:'1.2-2':'ca' }}€
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (data.kind === 'payment') {
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-[#EBE8D8] flex flex-col gap-4">
+        <div class="flex justify-between items-start gap-3">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Import</span>
+          <span class="text-2xl font-numeric font-semibold" [style.color]="COLORS.primary">
+            +{{ data.payment.amount | number:'1.2-2':'ca' }}€
+          </span>
+        </div>
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Qui paga</span>
+          <span class="font-body font-medium" [style.color]="COLORS.textMain">{{ data.payment.fromName }}</span>
+        </div>
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Qui rep</span>
+          <span class="font-body font-medium" [style.color]="COLORS.textMain">{{ data.payment.toName }}</span>
+        </div>
+        @if (data.payment.description) {
+          <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+            <span class="text-xs font-body" [style.color]="COLORS.textLight">Concepte</span>
+            <span class="font-body text-right" [style.color]="COLORS.textMain">{{ data.payment.description }}</span>
+          </div>
+        }
+        <div class="flex justify-between items-center gap-3 pt-3 border-t border-[#F7F4E8]">
+          <span class="text-xs font-body" [style.color]="COLORS.textLight">Data</span>
+          <span class="font-numeric" [style.color]="COLORS.textMain">{{ data.payment.date }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</ion-content>

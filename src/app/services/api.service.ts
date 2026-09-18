@@ -47,6 +47,7 @@ export class ApiService {
     userId?: string;
     clientName?: string;
     orderId?: string;
+    splitGroupId?: string;
   }) {
     return this.http.post<TransactionDto>(`${API}/transactions`, dto);
   }
@@ -55,6 +56,19 @@ export class ApiService {
     return this.http.delete(
       `${API}/transactions/${transactionId}`
     );
+  }
+
+  // Payments (ingresos entre socis)
+  getPayments() {
+    return this.http.get<PaymentDto[]>(`${API}/payments`);
+  }
+
+  addPayment(dto: CreatePaymentDto) {
+    return this.http.post<PaymentDto>(`${API}/payments`, dto);
+  }
+
+  deletePayment(paymentGroupId: string) {
+    return this.http.delete(`${API}/payments/${paymentGroupId}`);
   }
 
   // Balance
@@ -176,11 +190,37 @@ export interface TransactionDto {
   user?: User;
   clientName?: string;
   orderId?: string;
+  paymentGroupId?: string;
+  splitGroupId?: string;
   type: 'expense' | 'income';
   amount: number;
   description: string;
   date: string;
   createdAt: string;
+}
+
+export interface PaymentDto {
+  paymentGroupId: string;
+  fromUserId: string;
+  toUserId: string;
+  fromName: string;
+  toName: string;
+  amount: number;
+  description: string;
+  date: string;
+  createdAt: string;
+  isSettlement: boolean;
+  splitGroupId?: string;
+}
+
+export interface CreatePaymentDto {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+  description?: string;
+  date?: string;
+  isSettlement?: boolean;
+  splitGroupId?: string;
 }
 
 export interface BalanceResponse {

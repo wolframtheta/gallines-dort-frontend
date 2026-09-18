@@ -1,1 +1,16 @@
-// Dashboard-specific styles if needed
+.movement-row {
+  ion-item {
+    --min-height: 5.5rem;
+    --inner-padding-end: 0;
+  }
+}
+
+.movement-row-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 5.5rem;
+  height: 5.5rem;
+  padding: 1rem;
+  box-sizing: border-box;
+}

@@ -9,12 +9,14 @@ import { AuthService } from '../services/auth.service';
 import { User, TransactionDto } from '../services/api.service';
 import { COLORS } from '../models';
 import { SplitExpenseModalComponent, type SplitResult } from '../components/split-expense-modal/split-expense-modal.component';
+import { MovementDetailService } from '../services/movement-detail.service';
+import { SelectOnFocusDirective } from '../directives/select-on-focus.directive';
 
 @Component({
   selector: 'app-transactions',
   templateUrl: 'transactions.page.html',
   styleUrls: ['transactions.page.scss'],
-  imports: [HeaderComponent, IonContent, IonIcon, IonItem, IonSelect, IonSelectOption, IonItemSliding, IonItemOptions, IonItemOption, IonSkeletonText, IonSpinner, FormsModule],
+  imports: [HeaderComponent, IonContent, IonIcon, IonItem, IonSelect, IonSelectOption, IonItemSliding, IonItemOptions, IonItemOption, IonSkeletonText, IonSpinner, FormsModule, SelectOnFocusDirective],
 })
 export class TransactionsPage implements OnInit, ViewWillEnter {
   readonly COLORS = COLORS;
@@ -36,7 +38,8 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
 
   constructor(
     public gallines: GallinesService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private movementDetail: MovementDetailService
   ) {
     addIcons({ addOutline, peopleOutline, personOutline, trashOutline });
 
@@ -45,31 +48,37 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
       const currentUser = this.auth.user$();
       const users = this.gallines.users$();
 
-      if (currentUser && users.length > 0 && !this.newTransaction.userId) {
-        // Verifiquem que l'usuari loguejat realment existeix a la llista (per seguretat)
-        const exists = users.find((u: User) => u.id === currentUser.id);
-        if (exists) {
-          this.newTransaction.userId = currentUser.id;
-        } else if (!this.newTransaction.userId && users.length > 0) {
-          this.newTransaction.userId = users[0].id;
-        }
+      if (currentUser && users.length > 0) {
+        this.applyDefaultUser();
       }
     });
   }
 
   ngOnInit(): void {
-    const currentUser = this.auth.user$();
-    if (currentUser) {
-      this.newTransaction.userId = currentUser.id;
-    }
+    this.applyDefaultUser();
   }
 
   ionViewWillEnter(): void {
     void this.gallines.loadForTab('transactions');
+    this.applyDefaultUser();
+  }
+
+  private applyDefaultUser(): void {
+    const currentUser = this.auth.user$();
+    if (!currentUser) return;
+
+    const users = this.gallines.users$();
+    if (users.length > 0) {
+      const exists = users.find((u: User) => u.id === currentUser.id);
+      this.newTransaction.userId = exists ? currentUser.id : users[0].id;
+    } else {
+      this.newTransaction.userId = currentUser.id;
+    }
   }
 
   readonly sortedTransactions = computed(() =>
     [...this.gallines.transactions$()]
+      .filter((t) => t.type === 'expense' && !t.paymentGroupId)
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -81,6 +90,10 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
     if (t.userId) return this.gallines.getMemberName(t.userId);
     if (t.clientName) return t.clientName;
     return 'Desconegut';
+  }
+
+  openTransactionDetail(t: TransactionDto): void {
+    void this.movementDetail.openTransaction(t);
   }
 
   async deleteTransaction(t: TransactionDto): Promise<void> {
@@ -95,13 +108,20 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
 
   async openSplitExpenseModal(): Promise<void> {
     const initialAmount = parseFloat(this.newTransaction.amount) || 0;
+    const currentUser = this.auth.user$();
 
     const modal = await this.modalCtrl.create({
       component: SplitExpenseModalComponent,
       componentProps: {
-        participants: this.gallines.users$().map((u: User) => ({ id: u.id, name: u.displayName || u.email })),
+        participants: this.gallines.users$().map((u: User) => ({
+          id: u.id,
+          name: u.displayName || u.email,
+        })),
         initialAmount,
+        initialPayerId: currentUser?.id ?? this.newTransaction.userId,
       },
+      breakpoints: [0, 0.92],
+      initialBreakpoint: 0.92,
     });
 
     await modal.present();
@@ -117,21 +137,84 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
     this.processingSplit.set(true);
     try {
       let success = true;
-      for (const split of splitResult.splits) {
-        const netAmount = split.owes - split.paid;
-        if (Math.abs(netAmount) > 0.01) {
-          const result = await this.gallines.addTransaction({
-            type: 'expense',
-            userId: split.member.id,
-            amount: netAmount,
-            description: splitResult.description || 'Despesa compartida',
-          });
-          if (!result) success = false;
-        }
+      const description =
+        splitResult.description || 'Despesa compartida';
+      const splitGroupId = crypto.randomUUID();
+
+      const totalPaid = splitResult.payers.reduce((sum, p) => sum + p.amount, 0);
+      const primaryPayer = [...splitResult.payers].sort(
+        (a, b) => b.amount - a.amount
+      )[0];
+
+      if (primaryPayer && totalPaid > 0) {
+        const created = await this.gallines.addTransaction({
+          type: 'expense',
+          userId: primaryPayer.memberId,
+          amount: totalPaid,
+          description,
+          splitGroupId,
+        });
+        if (!created) success = false;
       }
+
+      const balances = new Map<string, number>();
+
+      for (const payer of splitResult.payers) {
+        balances.set(
+          payer.memberId,
+          (balances.get(payer.memberId) ?? 0) + payer.amount
+        );
+      }
+
+      for (const beneficiary of splitResult.beneficiaries) {
+        balances.set(
+          beneficiary.memberId,
+          (balances.get(beneficiary.memberId) ?? 0) - beneficiary.owes
+        );
+      }
+
+      const creditors: { memberId: string; amount: number }[] = [];
+      const debtors: { memberId: string; amount: number }[] = [];
+
+      for (const [memberId, net] of balances) {
+        if (net > 0.01) creditors.push({ memberId, amount: net });
+        else if (net < -0.01) debtors.push({ memberId, amount: -net });
+      }
+
+      creditors.sort((a, b) => b.amount - a.amount);
+      debtors.sort((a, b) => b.amount - a.amount);
+
+      let ci = 0;
+      let di = 0;
+
+      while (ci < creditors.length && di < debtors.length) {
+        const creditor = creditors[ci];
+        const debtor = debtors[di];
+        const amount = Math.min(creditor.amount, debtor.amount);
+
+        if (amount > 0.01) {
+          const paid = await this.gallines.addPayment({
+            fromUserId: debtor.memberId,
+            toUserId: creditor.memberId,
+            amount: Math.round(amount * 100) / 100,
+            description,
+            isSettlement: false,
+            splitGroupId,
+          });
+          if (!paid) success = false;
+
+          creditor.amount -= amount;
+          debtor.amount -= amount;
+        }
+
+        if (creditor.amount < 0.01) ci++;
+        if (debtor.amount < 0.01) di++;
+      }
+
       if (success) {
         this.newTransaction.amount = '';
         this.newTransaction.description = '';
+        this.applyDefaultUser();
       }
     } finally {
       this.processingSplit.set(false);
@@ -154,6 +237,7 @@ export class TransactionsPage implements OnInit, ViewWillEnter {
       ) {
         this.newTransaction.amount = '';
         this.newTransaction.description = '';
+        this.applyDefaultUser();
       }
     } finally {
       this.addingTransaction.set(false);

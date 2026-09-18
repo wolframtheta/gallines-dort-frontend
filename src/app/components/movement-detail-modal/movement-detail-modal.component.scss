@@ -1,0 +1,51 @@
+.detail-modal-header {
+  box-shadow: none;
+}
+
+.detail-modal-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #ebe8d8;
+}
+
+.detail-modal-title {
+  margin: 0;
+  margin-right: auto;
+  flex: 1;
+  min-width: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #2d2a26;
+  text-align: left;
+}
+
+.detail-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: end;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #8c857b;
+  border-radius: 9999px;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 24px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #f2c335;
+    outline-offset: 2px;
+  }
+}

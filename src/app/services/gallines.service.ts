@@ -14,17 +14,22 @@ import {
   SubscriptionDto,
   CreateSubscriptionDto,
   UpdateSubscriptionDto,
+  PaymentDto,
+  CreatePaymentDto,
 } from './api.service';
+import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class GallinesService {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
 
   private readonly _users = signal<User[]>([]);
   private readonly _transactions = signal<TransactionDto[]>([]);
   private readonly _balance = signal<BalanceResponse | null>(null);
   private readonly _orders = signal<OrderDto[]>([]);
   private readonly _subscriptions = signal<SubscriptionDto[]>([]);
+  private readonly _payments = signal<PaymentDto[]>([]);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
 
@@ -32,6 +37,7 @@ export class GallinesService {
   readonly transactions$ = this._transactions.asReadonly();
   readonly orders$ = this._orders.asReadonly();
   readonly subscriptions$ = this._subscriptions.asReadonly();
+  readonly payments$ = this._payments.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -61,15 +67,17 @@ export class GallinesService {
     this._loading.set(true);
     this._error.set(null);
     try {
-      const [transactionsRes, balanceRes, ordersRes] = (await Promise.all([
+      const [transactionsRes, balanceRes, ordersRes, paymentsRes] = (await Promise.all([
         this.wrap<TransactionDto[]>(this.api.getTransactions()),
         this.wrap<BalanceResponse>(this.api.getBalance()),
         this.wrap<OrderDto[]>(this.api.getOrders()),
+        this.wrap<PaymentDto[]>(this.api.getPayments()),
       ])) as any[];
 
       if (transactionsRes.status === 'fulfilled') this._transactions.set(transactionsRes.value ?? []);
       if (balanceRes.status === 'fulfilled') this._balance.set(balanceRes.value ?? null);
       if (ordersRes.status === 'fulfilled') this._orders.set(ordersRes.value ?? []);
+      if (paymentsRes.status === 'fulfilled') this._payments.set(paymentsRes.value ?? []);
 
       if (refreshUsers || this._users().length === 0) {
         try {
@@ -94,7 +102,6 @@ export class GallinesService {
     try {
       switch (tab) {
         case 'dashboard':
-        case 'balance':
           await this.loadBalanceAndTransactions();
           break;
         case 'comandes':
@@ -105,7 +112,11 @@ export class GallinesService {
           break;
         case 'transactions':
           await this.loadTransactions();
+          await this.loadPayments();
           if (this._users().length === 0) await this.loadUsers();
+          break;
+        case 'ingresos':
+          await this.loadIngresos();
           break;
         case 'members':
           await this.load(true);
@@ -123,12 +134,15 @@ export class GallinesService {
   }
 
   private async loadBalanceAndTransactions(): Promise<void> {
-    const [balanceRes, transactionsRes] = (await Promise.all([
+    const [balanceRes, transactionsRes, paymentsRes] = (await Promise.all([
       this.wrap<BalanceResponse>(this.api.getBalance()),
       this.wrap<TransactionDto[]>(this.api.getTransactions()),
+      this.wrap<PaymentDto[]>(this.api.getPayments()),
     ])) as any[];
     if (balanceRes.status === 'fulfilled') this._balance.set(balanceRes.value ?? null);
     if (transactionsRes.status === 'fulfilled') this._transactions.set(transactionsRes.value ?? []);
+    if (paymentsRes.status === 'fulfilled') this._payments.set(paymentsRes.value ?? []);
+    if (this._users().length === 0) await this.loadUsers();
   }
 
   private async loadOrders(): Promise<void> {
@@ -155,12 +169,23 @@ export class GallinesService {
     if (res.status === 'fulfilled') this._transactions.set(res.value ?? []);
   }
 
+  private async loadPayments(): Promise<void> {
+    const res = (await this.wrap<PaymentDto[]>(this.api.getPayments())) as any;
+    if (res.status === 'fulfilled') this._payments.set(res.value ?? []);
+  }
+
+  private async loadIngresos(): Promise<void> {
+    await this.loadPayments();
+    if (this._users().length === 0) await this.loadUsers();
+  }
+
   addTransaction(dto: {
     type: 'expense' | 'income';
     userId?: string;
     clientName?: string;
     amount: number;
     description?: string;
+    splitGroupId?: string;
   }): Promise<boolean> {
     if (!dto.amount) return Promise.resolve(false);
 
@@ -172,6 +197,7 @@ export class GallinesService {
         amount: dto.amount,
         description: dto.description ?? (dto.type === 'expense' ? 'Despesa' : 'Venda ous'),
         date: new Date().toISOString().split('T')[0],
+        splitGroupId: dto.splitGroupId,
       })
     )
       .then(() => {
@@ -186,9 +212,36 @@ export class GallinesService {
       .then(() => void this.load(false));
   }
 
+  addPayment(dto: CreatePaymentDto): Promise<boolean> {
+    if (!dto.amount || !dto.fromUserId || !dto.toUserId) return Promise.resolve(false);
+
+    return lastValueFrom(
+      this.api.addPayment({
+        ...dto,
+        date: dto.date ?? new Date().toISOString().split('T')[0],
+      })
+    )
+      .then(() => {
+        void this.load(false);
+        return true;
+      })
+      .catch(() => false);
+  }
+
+  deletePayment(paymentGroupId: string): Promise<void> {
+    return lastValueFrom(this.api.deletePayment(paymentGroupId))
+      .then(() => void this.load(false));
+  }
+
   getMemberName(id: string): string {
     const user = this._users().find((u: User) => u.id === id);
     if (user) return user.displayName || user.email;
+
+    const authUser = this.auth.user$();
+    if (authUser?.id === id) {
+      return authUser.displayName || authUser.email;
+    }
+
     return id;
   }
 
